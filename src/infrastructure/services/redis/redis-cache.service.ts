@@ -1,21 +1,21 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { ICacheService } from 'src/domain/adapter/cache.interface';
-// import { Cache } from 'cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class RedisCache implements ICacheService {
   constructor(
     @Inject(CACHE_MANAGER)
-    private readonly cacheManaher: Cache,
+    private readonly cache: Cache,
   ) {}
 
-  get<T>(key: string): Promise<T> {
-    throw new Error('Method not implemented.');
+  async get<T>(key: string): Promise<T> {
+    return await this.cache.get<T>(key);
   }
-  set<T>(key: string, value: T, option?: number): Promise<void> {
-    throw new Error('Method not implemented.');
+  async set<T>(key: string, value: T, option?: number): Promise<void> {
+    await this.cache.set(key, value, option);
   }
-  delete(key: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  async delete(key: string): Promise<void> {
+    await this.cache.del(key);
   }
 }

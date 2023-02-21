@@ -1,9 +1,11 @@
 import { DynamicModule, Module } from '@nestjs/common';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 // import { ILogger } from 'src/domain/logger/logger.interface';
 import { LoginUseCases } from 'src/usecases/auth/login.usecases';
 import { RegisterUseCases } from 'src/usecases/auth/register.usecases';
 import { CreateCampaignUseCases } from 'src/usecases/campaign/create.campaign.usecases';
 import { catUseCases } from 'src/usecases/cats/create-cat.usecase';
+import { SendEmailUseCases } from 'src/usecases/notificatoin/send-email.usecases';
 import { ExceptionsModule } from '../exception/exception.module';
 import { LoggerModule } from '../logger/logger.module';
 import { LoggerService } from '../logger/logger.service';
@@ -15,6 +17,11 @@ import { BcryptModule } from '../services/bcrypt/bcrypt.module';
 import { BcryptService } from '../services/bcrypt/bcrypt.service';
 import { JwtModule } from '../services/jwt/jwt.module';
 import { JwtTokenService } from '../services/jwt/jwt.service';
+import { NotificatoinModule } from '../services/notificatoin/notification.module';
+import { NotificationService } from '../services/notificatoin/notification.service';
+import { RabbitModule } from '../services/queue/rabbit.module';
+import { RabbitService } from '../services/queue/rabbit.service';
+import { RedisCacheModule } from '../services/redis/redis-cache.module';
 import { S3UploadModule } from '../services/s3upload/s3-upload.module';
 import { S3UploadService } from '../services/s3upload/s3-upload.service';
 import { UseCaseProxy } from './usecases-proxy';
@@ -27,6 +34,9 @@ import { UseCaseProxy } from './usecases-proxy';
     RepositoriesModule,
     ExceptionsModule,
     S3UploadModule,
+    RabbitModule,
+    NotificatoinModule,
+    RedisCacheModule,
   ],
 })
 export class UseCasesProxyModule {
@@ -34,6 +44,7 @@ export class UseCasesProxyModule {
   static LOGIN_USECASES_PROXY = 'LoginUseCasesProxy';
   static REGISTER_USECASES_PROXY = 'RegisterUseCasesProxy';
   static CREATE_CAMPAIGN_USECASES_PROXY = 'CreatCampiagnUseCasesProxy';
+  static SEND_EMAIL_USECASES_PROXY = 'SendEmailUseCasesProxy';
 
   static register(): DynamicModule {
     return {
@@ -58,6 +69,7 @@ export class UseCasesProxyModule {
             jwtTokenService: JwtTokenService,
             userRepo: UserRepository,
             bcryptService: BcryptService,
+            rabbitMqProvide: RabbitService,
           ) =>
             new UseCaseProxy(
               new LoginUseCases(
@@ -65,6 +77,7 @@ export class UseCasesProxyModule {
                 jwtTokenService,
                 userRepo,
                 bcryptService,
+                rabbitMqProvide,
               ),
             ),
         },
@@ -92,12 +105,21 @@ export class UseCasesProxyModule {
               new CreateCampaignUseCases(campignRepo, uploadService, logger),
             ),
         },
+        {
+          inject: [LoggerService, NotificationService],
+          provide: UseCasesProxyModule.SEND_EMAIL_USECASES_PROXY,
+          useFactory: (
+            logger: LoggerService,
+            notification: NotificationService,
+          ) => new UseCaseProxy(new SendEmailUseCases(notification, logger)),
+        },
       ],
       exports: [
         UseCasesProxyModule.CAT_USECASES_PROXY,
         UseCasesProxyModule.LOGIN_USECASES_PROXY,
         UseCasesProxyModule.REGISTER_USECASES_PROXY,
         UseCasesProxyModule.CREATE_CAMPAIGN_USECASES_PROXY,
+        UseCasesProxyModule.SEND_EMAIL_USECASES_PROXY,
       ],
     };
   }

@@ -14,5 +14,8 @@ export const typeormConfig: TypeOrmModuleOptions = {
       process.env.NODE_ENV === 'development',
   },
 };
-console.log(process.env.DATABASE_URL);
+console.log(
+  '🤑',
+  process.env.DATABASE_URL || 'postgres://root:root@127.0.0.1:5432/nestjs-db',
+);
 // export const AppDataSource = new DataSource(typeormConfig);

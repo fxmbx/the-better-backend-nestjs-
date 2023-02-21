@@ -11,6 +11,7 @@ import { LocalStrategy } from './infrastructure/common/strategies/local.strategy
 import { JwtStrategy } from './infrastructure/common/strategies/jwt.strategy';
 import { JwtRefreshTokenStrategy } from './infrastructure/common/strategies/rt.strategy';
 import { MessageGatewayModule } from './infrastructure/gateway/gateway.module';
+import { NotificatoinModule } from './infrastructure/services/notificatoin/notification.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MessageGatewayModule } from './infrastructure/gateway/gateway.module';
     BcryptModule,
     JwtServiceModule,
     MessageGatewayModule,
+    NotificatoinModule,
   ],
   providers: [LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy],
 })

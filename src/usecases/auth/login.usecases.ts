@@ -3,9 +3,9 @@ import {
   IJwtService,
   IJwtServicePayload,
 } from 'src/domain/adapter/jwt.interface';
+import { IQueueInterface } from 'src/domain/adapter/queue.interface';
 import { ILogger } from 'src/domain/logger/logger.interface';
 import { IUserRepository } from 'src/domain/repositories/userRepository.interface';
-import { UserRepository } from 'src/infrastructure/repositories/user.repository';
 
 export class LoginUseCases {
   constructor(
@@ -13,6 +13,7 @@ export class LoginUseCases {
     private readonly jwtTokenService: IJwtService,
     private readonly userRepository: IUserRepository,
     private readonly bcryptService: IBcryptService,
+    private readonly rabbitMqProvide: IQueueInterface,
   ) {}
 
   async getCookieWithJwtToken(username: string) {
@@ -75,6 +76,12 @@ export class LoginUseCases {
 
   async updateLoginTime(username: string) {
     await this.userRepository.updateLastLogin(username);
+
+    await this.rabbitMqProvide.publish('last_login', {
+      username: username,
+      action: 'last login',
+      time: Date.now(),
+    });
   }
 
   async setCurrentRefreshToken(refreshToken: string, username: string) {
