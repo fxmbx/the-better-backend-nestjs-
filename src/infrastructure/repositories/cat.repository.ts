@@ -23,8 +23,8 @@ export class CatRepository implements ICatRepository {
   ) {}
 
   async insert(data: CatM): Promise<CatM> {
-    let cat = this.catRepository.create(data);
-    let result = await this.catRepository.save(cat);
+    const cat = this.catRepository.create(data);
+    const result = await this.catRepository.save(cat);
     if (!result) {
       throw new BadRequestException('error saving cat');
     }
